@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wheelchair Accessible Map</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqnZmaj8zEL6vjl5Qz0ZICv60YRjo0M7o&libraries=places"></script>
+  <style>
+    #map {
+      height: 600px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <input type="file" id="csvFileInput" accept=".csv" style="margin-top: 10px;">
+  <script>
+    let map;
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 53.349805, lng: -6.26031 }, // Dublin, Ireland
+        zoom: 14,
+      });
+
+      // Listen for file input change event
+      document.getElementById('csvFileInput').addEventListener('change', handleFileSelect);
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const csvData = e.target.result;
+        processData(csvData);
+      };
+      reader.readAsText(file);
+    }
+
+    function processData(csvData) {
+      // Split CSV data into rows
+      const rows = csvData.split('\n');
+      // Process each row
+      rows.forEach(row => {
+        const columns = row.split(',');
+        const address = columns[0].trim(); // Assuming address is in the first column
+        // Geocode address and add marker (you can use your existing function for this)
+        geocodeAddress(address, function(coordinates) {
+          new google.maps.Marker({
+            position: coordinates,
+            map: map,
+            icon: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+          });
+        });
+      });
+    }
+
+    function geocodeAddress(address, callback) {
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ address: address }, function(results, status) {
+        if (status === google.maps.GeocoderStatus.OK) {
+          const coordinates = results[0].geometry.location;
+          callback(coordinates);
+        } else {
+          console.error("Geocode was not successful for the following reason:", status);
+        }
+      });
+    }
+  </script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqnZmaj8zEL6vjl5Qz0ZICv60YRjo0M7o&callback=initMap"></script>
+</body>
+</html>
